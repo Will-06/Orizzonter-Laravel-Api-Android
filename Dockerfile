@@ -9,41 +9,46 @@ RUN apt-get update && apt-get install -y \
     libxml2-dev \
     zip \
     unzip \
-    libzip-dev
+    libzip-dev \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# 2. Limpiar caché
-RUN apt-get clean && rm -rf /var/lib/apt/lists/*
-
-# 3. Instalar extensiones de PHP
+# 2. Instalar extensiones de PHP
 RUN docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
 
-# 4. Habilitar mod_rewrite de Apache
+# 3. Habilitar mod_rewrite de Apache
 RUN a2enmod rewrite
 
-# 🟢 4.1 Cambiar DocumentRoot a /public
-RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+# 4. Cambiar DocumentRoot a /var/www/html/public
+RUN sed -i 's|DocumentRoot /var/www/html|DocumentRoot /var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
 
-# 🟢 4.2 Evitar el warning de ServerName
+# 5. Configurar Apache para permitir .htaccess en /var/www/html/public
+RUN echo '<Directory /var/www/html/public>\n\
+    Options Indexes FollowSymLinks\n\
+    AllowOverride All\n\
+    Require all granted\n\
+</Directory>' >> /etc/apache2/apache2.conf
+
+# 6. Evitar warning de ServerName
 RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
 
-# 5. Copiar el proyecto al contenedor
+# 7. Copiar proyecto al contenedor
 COPY . /var/www/html
 
-# 6. Copiar composer.json y composer.lock
+# 8. Copiar composer.json y composer.lock (esto puede ser redundante pero no hace daño)
 COPY composer.json composer.lock* /var/www/html/
 
-# 7. Instalar Composer
+# 9. Copiar composer desde la imagen oficial
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# 8. Establecer directorio de trabajo
+# 10. Establecer directorio de trabajo
 WORKDIR /var/www/html
 
-# 9. Instalar dependencias de Composer (sin desarrollo)
+# 11. Instalar dependencias de Composer sin desarrollo y optimizar autoload
 RUN composer install --no-dev --optimize-autoloader
 
-# 10. Configurar permisos de Laravel
-RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache
-RUN chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
+# 12. Configurar permisos correctos para Laravel
+RUN chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache \
+    && chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache
 
-# 11. Exponer puerto 80
+# 13. Exponer puerto 80
 EXPOSE 80
