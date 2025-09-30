@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: laravel-api-railway
+    env: docker
+    plan: free
+    branch: main
+    dockerfilePath: Dockerfile
+    envVars:
+      - fromFile: .env.production
