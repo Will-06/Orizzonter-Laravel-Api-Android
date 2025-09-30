@@ -26,12 +26,48 @@ use App\Http\Controllers\UserController;
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Artisan;
 
-// Public routes
+// ✅ RUTAS PÚBLICAS
+
+// Ruta de salud (para monitoreo o testing)
+Route::get('/health', function () {
+    return response()->json([
+        'status' => 'OK',
+        'message' => 'API Laravel funcionando correctamente',
+        'timestamp' => now()
+    ]);
+});
+
+// Ruta para ejecutar migraciones automáticamente (EJECUTAR UNA SOLA VEZ)
+Route::get('/run-migrations-once', function () {
+    try {
+        $migrationsTableExists = DB::select("SHOW TABLES LIKE 'migrations'");
+
+        if (empty($migrationsTableExists)) {
+            Artisan::call('migrate', ['--force' => true]);
+            return response()->json([
+                'message' => 'Migraciones ejecutadas correctamente',
+                'output' => Artisan::output()
+            ]);
+        } else {
+            return response()->json([
+                'message' => 'Las migraciones ya fueron ejecutadas anteriormente'
+            ]);
+        }
+    } catch (\Exception $e) {
+        return response()->json([
+            'error' => 'Error ejecutando migraciones: ' . $e->getMessage()
+        ], 500);
+    }
+});
+
+// ✅ RUTAS DE AUTENTICACIÓN
 Route::post('auth/login', [AuthController::class, 'login']);
 Route::post('auth/register', [RegisterController::class, 'register']);
 
-// Protected routes with JWT
+// ✅ RUTAS PROTEGIDAS CON JWT
 Route::middleware('auth:api')->group(function () {
     Route::get('/user', function (Request $request) {
         return $request->user();

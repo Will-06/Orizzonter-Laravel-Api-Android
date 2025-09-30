@@ -53,10 +53,12 @@ use App\Services\Impl\{
 };
 
 use Illuminate\Support\ServiceProvider;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Artisan;
 
 class AppServiceProvider extends ServiceProvider
 {
-
     public function register(): void
     {
         $this->app->bind(AnnouncementService::class, AnnouncementServiceImpl::class);
@@ -82,11 +84,23 @@ class AppServiceProvider extends ServiceProvider
         $this->app->bind(UserService::class, UserServiceImpl::class);
     }
 
-    /**
-     * Bootstrap any application services.
-     */
     public function boot(): void
     {
-        //
+        // Ejecutar migraciones automáticamente al iniciar la aplicación
+        // SOLO en producción y si no hay tablas
+        if (app()->environment('production')) {
+            try {
+                // Verificar si la tabla 'migrations' existe
+                $tableExists = DB::select("SHOW TABLES LIKE 'migrations'");
+
+                if (empty($tableExists)) {
+                    // Ejecutar migraciones si no hay tablas
+                    Artisan::call('migrate', ['--force' => true]);
+                    Log::info('Migraciones ejecutadas automáticamente en producción');
+                }
+            } catch (\Exception $e) {
+                Log::error('Error en migración automática: ' . $e->getMessage());
+            }
+        }
     }
 }
