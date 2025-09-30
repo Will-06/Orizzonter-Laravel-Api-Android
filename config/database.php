@@ -42,9 +42,9 @@ return [
             'synchronous' => null,
         ],
 
-        'mysql' => [
+'mysql' => [
     'driver' => 'mysql',
-    'url' => env('DATABASE_URL'),
+    'url' => env('DATABASE_URL'), // opcional, usualmente no la usas si defines host, user, pass separados
     'host' => env('DB_HOST', '127.0.0.1'),
     'port' => env('DB_PORT', '3306'),
     'database' => env('DB_DATABASE', 'laravel'),
@@ -61,6 +61,7 @@ return [
         PDO::MYSQL_ATTR_SSL_CA => env('MYSQL_ATTR_SSL_CA'),
     ]) : [],
 ],
+
 
         'mariadb' => [
             'driver' => 'mariadb',

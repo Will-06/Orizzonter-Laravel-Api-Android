@@ -6,6 +6,27 @@ services:
     branch: main
     dockerfilePath: Dockerfile
     envVars:
-      - fromFile: .env.production
+      # Puedes cargar variables directamente aquí o desde archivo .env
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: 'false'
+      - key: APP_URL
+        value: https://orizzonter-laravel-api-android.onrender.com
+      - key: DB_CONNECTION
+        value: mysql
+      - key: DB_HOST
+        value: mysql.railway.internal
+      - key: DB_PORT
+        value: '3306'
+      - key: DB_DATABASE
+        value: railway
+      - key: DB_USERNAME
+        value: root
+      - key: DB_PASSWORD
+        value: MQZfREmtEdXvraeEgHyVcuOpLYUAhcig
+      - key: MYSQL_ATTR_SSL_CA
+        value: /etc/ssl/certs/ca-certificates.crt
+      # ... agrega otras variables que necesites
     preDeployCommand: |
       php artisan migrate --force
