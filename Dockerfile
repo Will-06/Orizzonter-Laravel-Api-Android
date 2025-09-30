@@ -20,6 +20,12 @@ RUN docker-php-ext-install pdo pdo_mysql mbstring zip exif pcntl bcmath gd
 # 4. Habilitar mod_rewrite de Apache
 RUN a2enmod rewrite
 
+# 🟢 4.1 Cambiar DocumentRoot a /public
+RUN sed -i 's|/var/www/html|/var/www/html/public|g' /etc/apache2/sites-available/000-default.conf
+
+# 🟢 4.2 Evitar el warning de ServerName
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # 5. Copiar el proyecto al contenedor
 COPY . /var/www/html
 
