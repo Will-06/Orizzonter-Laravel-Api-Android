@@ -7,3 +7,5 @@ services:
     dockerfilePath: Dockerfile
     envVars:
       - fromFile: .env.production
+    preDeployCommand: |
+      php artisan migrate --force
